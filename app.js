@@ -1,10 +1,10 @@
 const fs = require("fs");
 const inquirer = require("inquirer");
 
-const Employee = require("./lib/Employee")
-const Manager = require("./lib/Manager");
-const Engineer = require("./lib/Engineer");
-const Intern = require("./lib/Intern");
+const Employee = require("./Develop/lib/Employee")
+const Manager = require("./Develop/lib/Manager");
+const Engineer = require("./Develop/lib/Engineer");
+const Intern = require("./Develop/lib/Intern");
 
 const path = require("path");
 
@@ -13,6 +13,9 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
 
+const writeFileAsync = util.promisify(fs.writeFile);
+
+const teamData = []
 
 
 function promptUser() {
@@ -51,3 +54,21 @@ function promptUser() {
         },
         ]);
 }
+
+async function init() {
+    console.log("Hello")
+    try {
+        const answers = await promptUser();
+
+        const html = htmlRenderer(answers);
+
+        //writeFile will creat html page with the answers
+        await writeFileAsync("team.html", html);
+
+        console.log("Successfully wrote to team.html");
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+init();
