@@ -24,6 +24,11 @@ function promptUser() {
         }, 
         {
             type: "input",
+            message: "Enter your id:",
+            name: "id"
+        }, 
+        {
+            type: "input",
             message: "Enter your email address:",
             name: "email"
         }, 
@@ -37,5 +42,12 @@ function promptUser() {
             type: "input",
             message: "Enter your github username:",
             name: "username"
-        }, ]);
+        },
+        {
+
+            type: "input",
+            message: "Enter your school name:",
+            name: "school"
+        },
+        ]);
 }
