@@ -1,74 +1,181 @@
 const fs = require("fs");
 const inquirer = require("inquirer");
 
-const Employee = require("./Develop/lib/Employee")
-const Manager = require("./Develop/lib/Manager");
-const Engineer = require("./Develop/lib/Engineer");
-const Intern = require("./Develop/lib/Intern");
+const Employee = require("./lib/Employee.js")
+const Manager = require("./lib/Manager.js");
+const Engineer = require("./lib/Engineer.js");
+const Intern = require("./lib/Intern.js");
 
-const path = require("path");
+var teamList = [];
+const managerQuestions = [
+    {
+        type: "input",
+        name: "name",
+        message: "Enter manager name:",
+        validate: async (input) => {
+            if (input == "" || /\s/.test(input)) {
+                return "Please enter first or last name.";
+            }
+            return true;
+        }
+    },
+    {
+        type: "input",
+        name: "email",
+        message: "Enter manager's email:",
+        validate: async (input) => {
+            if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(input)) {
+                return true;
+            }
+            return "Please enter a valid email address.";
+        }
+    },
+    {
+        type: "input",
+        name: "officeNum",
+        message: "Enter office number:",
+        validate: async (input) => {
+            if (isNaN(input)) {
+                return "Please enter a number";
+            }
+            return true;
+        }
+    },
+    {
+        type: "list",
+        name: "hasTeam",
+        message: "Do you have any team members?",
+        choices: ["Yes", "No"]
+    }
+]
 
-const OUTPUT_DIR = path.resolve(__dirname, "output");
-const outputPath = path.join(OUTPUT_DIR, "team.html");
-
-const render = require("./lib/htmlRenderer");
-
-const writeFileAsync = util.promisify(fs.writeFile);
-
-const teamData = []
-
-
-function promptUser() {
-    return inquirer.prompt([
-        {
-            type: "input",
-            message: "Enter your first name:",
-            name: "name"
-        }, 
-        {
-            type: "input",
-            message: "Enter your id:",
-            name: "id"
-        }, 
-        {
-            type: "input",
-            message: "Enter your email address:",
-            name: "email"
-        }, 
-        {
-            type: "input",
-            message: "What's your role?",
-            name: "role",
-            choices: ['manager', 'engineer', 'intern']
+const employeeQuestions = [
+    {
+        type: "input",
+        name: "name",
+        message: "Enter employee name:",
+        validate: async (input) => {
+            if (input == "") {
+                return "Please enter a name.";
+            }
+            return true;
+        }
+    },
+    {
+        type: "input",
+        name: "email",
+        message: "Enter their email:",
+        validate: async (input) => {
+            if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(input)) {
+                return true;
+            }
+            return "Please enter a valid email address.";
+        }
+    },
+    {
+        type: "list",
+        name: "role",
+        message: "What is their role?",
+        choices: ["engineer", "intern"]
+    },
+    {
+        when: input => {
+            return input.role == "engineer"
         },
-        {
-            type: "input",
-            message: "Enter your github username:",
-            name: "username"
+        type: "input",
+        name: "github",
+        message: "Engineer, enter your github username:",
+        validate: async (input) => {
+            if (input == "" || /\s/.test(input)) {
+                return "Please enter a valid GitHub username";
+            }
+            return true;
+        }
+    },
+    {
+        when: input => {
+            return input.role == "intern"
         },
-        {
+        type: "input",
+        name: "school",
+        message: "Intern, enter your school name:",
+        validate: async (input) => {
+            if (input == "") {
+                return "Please enter a name.";
+            }
+            return true;
+        }
+    },
+    {
+        type: "list",
+        name: "addAnother",
+        message: "Add another team member?",
+        choices: ["Yes", "No"]
+    }
+]
 
-            type: "input",
-            message: "Enter your school name:",
-            name: "school"
-        },
-        ]);
+function buildTeamList() {
+    inquire.prompt(employeeQuestions).then(employeeInfo => {
+        if (employeeInfo.role == "engineer") {
+            var newMember = new Engineer(employeeInfo.name, teamList.length + 1, employeeInfo.email, employeeInfo.github);
+        } else {
+            var newMember = new Intern(employeeInfo.name, teamList.length + 1, employeeInfo.email, employeeInfo.school);
+        }
+        teamList.push(newMember);
+        if (employeeInfo.addAnother === "Yes") {
+            console.log(" ");
+            buildTeamList();
+        } else {
+            buildHtmlPage();
+        }
+    })
 }
 
-async function init() {
-    console.log("Hello")
-    try {
-        const answers = await promptUser();
+function buildHtmlPage() {
+    let newFile = fs.readFileSync("./templates/main.html")
+    fs.writeFileSync("./output/team.html", newFile, function (err) {
+        if (err) throw err;
+    })
 
-        const html = htmlRenderer(answers);
+    console.log("Base page generated!");
 
-        //writeFile will creat html page with the answers
-        await writeFileAsync("team.html", html);
-
-        console.log("Successfully wrote to team.html");
-    } catch (err) {
-        console.log(err);
+    for (member of teamList) {
+        if (member.getRole() == "Manager") {
+            buildHtmlCard("manager", member.getName(), member.getId(), member.getEmail(), "Office: " + member.getOfficeNumber());
+        } else if (member.getRole() == "Engineer") {
+            buildHtmlCard("engineer", member.getName(), member.getId(), member.getEmail(), "Github: " + member.getGithub());
+        } else if (member.getRole() == "Intern") {
+            buildHtmlCard("intern", member.getName(), member.getId(), member.getEmail(), "School: " + member.getSchool());
+        }
     }
+    fs.appendFileSync("./output/team.html", "</div></main></body></html>", function (err) {
+        if (err) throw err;
+    });
+    console.log("Page tags closed! Operation completed.")
+
+}
+
+function buildHtmlCard(memberType, name, id, email, propertyValue) {
+    let data = fs.readFileSync(`./templates/${memberType}.html`, 'utf8')
+    data = data.replace("name", name);
+    data = data.replace("idplace", `ID: ${id}`);
+    data = data.replace("emailplace", `Email: <a href="mailto:${email}">${email}</a>`);
+    data = data.replace("propertyplace", propertyValue);
+    fs.appendFileSync("./output/team.html", data, err => { if (err) throw err; })
+    console.log("Card appended");
+}
+
+function init() {
+    inquire.prompt(managerQuestions).then(managerInfo => {
+        let teamManager = new Manager(managerInfo.name, 1, managerInfo.email, managerInfo.officeNum);
+        teamList.push(teamManager);
+        console.log(" ");
+        if (managerInfo.hasTeam === "Yes") {
+            buildTeamList();    
+        } else {
+            buildHtmlPage();
+        }
+    })
 }
 
 init();
