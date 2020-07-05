@@ -1,5 +1,5 @@
 
-[!
+[Link to deployed page](https://crystajeffcoat.github.io/MovieFinder/)
 # EmployeeSummary
 
 As a manager
@@ -11,5 +11,7 @@ Goal:
 - When the user has completed building the team, the application will create an HTML file that displays a nicely formatted team roster based on the information provided by the user. 
 - Application will pass all unit tests
 - It will use getname(), getid(), getemail(),and getrole(). 
+
+![Link to deployed page](https://crystajeffcoat.github.io/MovieFinder/)
 
 
