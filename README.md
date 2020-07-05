@@ -12,6 +12,6 @@ Goal:
 - Application will pass all unit tests
 - It will use getname(), getid(), getemail(),and getrole(). 
 
-![Link to deployed page](https://crystajeffcoat.github.io/MovieFinder/)
+![Test.png](https://github.com/sthapa411/EmployeeSummary/blob/master/Test.png)
 
 
