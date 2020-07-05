@@ -1,5 +1,5 @@
 
-[Link to deployed page](https://crystajeffcoat.github.io/MovieFinder/)
+[Link to deployed page](https://sthapa411.github.io/EmployeeSummary/)
 # EmployeeSummary
 
 As a manager
